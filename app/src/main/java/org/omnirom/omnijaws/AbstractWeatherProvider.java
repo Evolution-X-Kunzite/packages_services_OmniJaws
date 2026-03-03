@@ -158,6 +158,20 @@ public abstract class AbstractWeatherProvider {
         return city;
     }
 
+    /**
+     * Resolves the localized condition text from the condition code
+     * (Yahoo scheme), using the string resource "omnijaws_weather_<code>".
+     * Returns an empty string when the code is invalid or no string exists.
+     */
+    protected String getConditionText(int conditionCode) {
+        if (conditionCode < 0) {
+            return "";
+        }
+        int resId = mContext.getResources().getIdentifier(
+                "omnijaws_weather_" + conditionCode, "string", mContext.getPackageName());
+        return resId != 0 ? mContext.getString(resId) : "";
+    }
+
     protected String getDay(int i) {
         Calendar calendar = Calendar.getInstance();
         if (i > 0) {

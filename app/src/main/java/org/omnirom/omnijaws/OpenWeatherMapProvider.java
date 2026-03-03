@@ -88,10 +88,12 @@ public class OpenWeatherMapProvider extends AbstractWeatherProvider {
 
             String city = getWeatherDataLocality(selection);
 
+            int conditionCode = mapConditionIconToCode(
+                    weather.getString("icon"), weather.getInt("id"));
+
             WeatherInfo w = new WeatherInfo(mContext, selection, city,
-                    /* condition */ "",
-                    /* conditionCode */ mapConditionIconToCode(
-                    weather.getString("icon"), weather.getInt("id")),
+                    /* condition */ getConditionText(conditionCode, weather),
+                    /* conditionCode */ conditionCode,
                     /* temperature */ sanitizeTemperature(conditionData.getDouble("temp"), metric),
                     /* humidity */ (float) conditionData.getDouble("humidity"),
                     /* wind */ windSpeed,
@@ -156,12 +158,13 @@ public class OpenWeatherMapProvider extends AbstractWeatherProvider {
                 JSONObject forecast = forecasts.getJSONObject(i);
                 JSONObject conditionData = forecast.getJSONObject("temp");
                 JSONObject data = forecast.getJSONArray("weather").getJSONObject(0);
+                int conditionCode = mapConditionIconToCode(
+                        data.getString("icon"), data.getInt("id"));
                 item = new DayForecast(
                         /* low */ sanitizeTemperature(conditionData.getDouble("min"), metric),
                         /* high */ sanitizeTemperature(conditionData.getDouble("max"), metric),
-                        /* condition */ "",
-                        /* conditionCode */ mapConditionIconToCode(
-                        data.getString("icon"), data.getInt("id")),
+                        /* condition */ getConditionText(conditionCode, data),
+                        /* conditionCode */ conditionCode,
                         day,
                         metric);
             } catch (JSONException e) {
@@ -198,10 +201,12 @@ public class OpenWeatherMapProvider extends AbstractWeatherProvider {
                 if (metric) {
                     hWindSpeed *= 3.6f;
                 }
+                int condCode = mapConditionIconToCode(
+                        hourWeather.getString("icon"), hourWeather.getInt("id"));
                 result.add(new WeatherInfo.HourlyForecast(
                         sanitizeTemperature(hour.getDouble("temp"), metric),
-                        mapConditionIconToCode(hourWeather.getString("icon"), hourWeather.getInt("id")),
-                        "",
+                        condCode,
+                        getConditionText(condCode, hourWeather),
                         hour.getLong("dt") * 1000L,
                         (float) hour.getDouble("humidity"),
                         hWindSpeed,
@@ -211,6 +216,16 @@ public class OpenWeatherMapProvider extends AbstractWeatherProvider {
             }
         }
         return result;
+    }
+
+    // Prefer the local (translatable) string for the condition code; if there is
+    // none, fall back to the description OpenWeatherMap returns for the "lang" param.
+    private String getConditionText(int conditionCode, JSONObject weather) {
+        String text = getConditionText(conditionCode);
+        if (TextUtils.isEmpty(text)) {
+            text = weather.optString("description", "");
+        }
+        return text;
     }
 
     // OpenWeatherMap sometimes returns temperatures in Kelvin even if we ask it

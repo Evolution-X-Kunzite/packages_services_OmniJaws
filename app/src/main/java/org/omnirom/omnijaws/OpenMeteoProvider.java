@@ -91,14 +91,15 @@ public class OpenMeteoProvider extends AbstractWeatherProvider {
 
             boolean isDay = current.optInt("is_day", 1) == 1;
             int weatherCode = current.optInt("weather_code", -1);
+            int conditionCode = mapWmoToCode(weatherCode, isDay);
 
             String city = getWeatherDataLocality(selection);
 
             WeatherInfo w = new WeatherInfo(mContext,
                     /* id */ selection,
                     /* cityId */ city,
-                    /* condition */ "",
-                    /* conditionCode */ mapWmoToCode(weatherCode, isDay),
+                    /* condition */ getConditionText(conditionCode),
+                    /* conditionCode */ conditionCode,
                     /* temperature */ (float) current.getDouble("temperature_2m"),
                     /* humidity */ (float) current.optDouble("relative_humidity_2m", Double.NaN),
                     /* wind */ (float) current.optDouble("wind_speed_10m", Double.NaN),
@@ -163,11 +164,12 @@ public class OpenMeteoProvider extends AbstractWeatherProvider {
                     continue;
                 }
                 int code = codes.getInt(i);
+                int conditionCode = mapWmoToCode(code, true);
                 result.add(new DayForecast(
                         /* low */ (float) lows.getDouble(i),
                         /* high */ (float) highs.getDouble(i),
-                        /* condition */ "",
-                        /* conditionCode */ mapWmoToCode(code, true),
+                        /* condition */ getConditionText(conditionCode),
+                        /* conditionCode */ conditionCode,
                         getDay(i),
                         metric));
             } catch (JSONException e) {
@@ -210,10 +212,11 @@ public class OpenMeteoProvider extends AbstractWeatherProvider {
                 }
                 int code = codes.isNull(i) ? -1 : codes.getInt(i);
                 boolean isDay = isDays == null || isDays.optInt(i, 1) == 1;
+                int condCode = mapWmoToCode(code, isDay);
                 result.add(new WeatherInfo.HourlyForecast(
                         (float) temps.getDouble(i),
-                        mapWmoToCode(code, isDay),
-                        "",
+                        condCode,
+                        getConditionText(condCode),
                         times.getLong(i) * 1000L,
                         hums != null ? (float) hums.optDouble(i, Double.NaN) : Float.NaN,
                         winds != null ? (float) winds.optDouble(i, Double.NaN) : Float.NaN,

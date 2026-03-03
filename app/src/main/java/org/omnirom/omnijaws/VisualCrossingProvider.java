@@ -107,11 +107,13 @@ public class VisualCrossingProvider extends AbstractWeatherProvider {
 
             String city = getWeatherDataLocality(selection);
 
+            int conditionCode = mapIconToCode(current.optString("icon", ""));
+
             WeatherInfo w = new WeatherInfo(mContext,
                     /* id */ selection,
                     /* cityId */ city,
-                    /* condition */ "",
-                    /* conditionCode */ mapIconToCode(current.optString("icon", "")),
+                    /* condition */ getConditionText(conditionCode),
+                    /* conditionCode */ conditionCode,
                     /* temperature */ (float) current.getDouble("temp"),
                     /* humidity */ (float) current.optDouble("humidity", Double.NaN),
                     /* wind */ (float) current.optDouble("windspeed", Double.NaN),
@@ -181,11 +183,12 @@ public class VisualCrossingProvider extends AbstractWeatherProvider {
                     Log.w(TAG, "Incomplete forecast for day " + i);
                     continue;
                 }
+                int conditionCode = mapIconToCode(forecast.optString("icon", ""));
                 result.add(new DayForecast(
                         /* low */ (float) forecast.getDouble("tempmin"),
                         /* high */ (float) forecast.getDouble("tempmax"),
-                        /* condition */ "",
-                        /* conditionCode */ mapIconToCode(forecast.optString("icon", "")),
+                        /* condition */ getConditionText(conditionCode),
+                        /* conditionCode */ conditionCode,
                         getDay(i),
                         metric));
             } catch (JSONException e) {
@@ -226,10 +229,11 @@ public class VisualCrossingProvider extends AbstractWeatherProvider {
                     if (ts < cutoffSec || hour.isNull("temp")) {
                         continue;
                     }
+                    int condCode = mapIconToCode(hour.optString("icon", ""));
                     result.add(new WeatherInfo.HourlyForecast(
                             (float) hour.getDouble("temp"),
-                            mapIconToCode(hour.optString("icon", "")),
-                            "",
+                            condCode,
+                            getConditionText(condCode),
                             ts * 1000L,
                             (float) hour.optDouble("humidity", Double.NaN),
                             (float) hour.optDouble("windspeed", Double.NaN),

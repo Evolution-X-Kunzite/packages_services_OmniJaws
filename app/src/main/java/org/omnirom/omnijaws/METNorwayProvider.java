@@ -85,7 +85,7 @@ public class METNorwayProvider extends AbstractWeatherProvider {
             WeatherInfo w = new WeatherInfo(mContext,
                     /* id */ coordinates,
                     /* cityId */ city,
-                    /* condition */ "",
+                    /* condition */ getConditionText(weatherCode),
                     /* conditionCode */ weatherCode,
                     /* temperature */ convertTemperature(weather.getDouble("air_temperature"), metric),
                     /* humidity */ (float) weather.optDouble("relative_humidity", Double.NaN),
@@ -239,11 +239,12 @@ public class METNorwayProvider extends AbstractWeatherProvider {
                         ? scSixToEighteen : Math.max(scSixToTwelve, scTwelveToEighteen);
             }
 
+            int conditionCode = iconToCode(symbolCode);
             result.add(new DayForecast(
                     /* low */ convertTemperature(temp_min, metric),
                     /* high */ convertTemperature(temp_max, metric),
-                    /* condition */ "",
-                    /* conditionCode */ iconToCode(symbolCode),
+                    /* condition */ getConditionText(conditionCode),
+                    /* conditionCode */ conditionCode,
                     day,
                     metric));
         }
@@ -297,7 +298,7 @@ public class METNorwayProvider extends AbstractWeatherProvider {
                 result.add(new WeatherInfo.HourlyForecast(
                         convertTemperature(details.getDouble("air_temperature"), metric),
                         condCode,
-                        "",
+                        getConditionText(condCode),
                         ts,
                         (float) details.optDouble("relative_humidity", Double.NaN),
                         convertWindSpeed(details.optDouble("wind_speed", Double.NaN), metric),
